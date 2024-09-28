@@ -62,7 +62,7 @@ public:
             //让同一地址的数据等于自己，没有实际意义，直接return掉，规避了c.setName(c.getName())的报错
             return;
         }
-        char *temp_name;//这里也改了改，先给临时变量分配内存，确认分配并复制好后再让name指向这个新的内存。上面的赋值操作也是如此
+        char *temp_name;//这里也改了改，先给临时变量分配内存，确认分配并赋值好后再让name指向这个新的内存。上面的赋值操作也是如此
         int len = strlen(_name) + 1;
         temp_name = new char[len];
         for (int i = 0; i < len; i++)
