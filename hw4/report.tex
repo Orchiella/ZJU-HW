@@ -1,0 +1,86 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{geometry, CJKutf8}
+\geometry{margin=1.5cm, vmargin={0pt,1cm}}
+\setlength{\topmargin}{-1cm}
+\setlength{\paperheight}{29.7cm}
+\setlength{\textheight}{25.3cm}
+
+% useful packages.
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{fancyhdr}
+\usepackage{layout}
+\usepackage{listings}
+\usepackage{float, caption}
+
+\lstset{
+    basicstyle=\ttfamily, basewidth=0.5em
+}
+
+% some common command
+\newcommand{\dif}{\mathrm{d}}
+\newcommand{\avg}[1]{\left\langle #1 \right\rangle}
+\newcommand{\difFrac}[2]{\frac{\dif #1}{\dif #2}}
+\newcommand{\pdfFrac}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\OFL}{\mathrm{OFL}}
+\newcommand{\UFL}{\mathrm{UFL}}
+\newcommand{\fl}{\mathrm{fl}}
+\newcommand{\op}{\odot}
+\newcommand{\Eabs}{E_{\mathrm{abs}}}
+\newcommand{\Erel}{E_{\mathrm{rel}}}
+
+\begin{document}
+
+\pagestyle{fancy}
+\fancyhead{}
+\lhead{姓名: 邓东宁}
+\chead{数据结构与算法作业四}
+\rhead{学号: 3230101177}
+\cfoot{Oct.18th, 2024}
+
+\section{测试程序的设计思路}
+
+概括的测试历程是“初始化->增删改查”（其中“改”和“查”是我补充的操作）
+
+\subsection{初始化部分}
+\begin{itemize}
+  \item 用 \texttt{lst1} 测试初始化列表构造
+  \item 用 \texttt{lst2} 测试拷贝构造
+  \item 先初始化一个空的 \texttt{lst3}，再藉助赋值运算符用 \texttt{lst2} 对其进行初始化
+  \item 藉助移动构造函数用 \texttt{lst3} 初始化 \texttt{lst4}，并确认过后 \texttt{lst3} 已无数据
+\end{itemize}
+
+\subsection{增删改查部分}
+（以下所有测试基于 \texttt{lst4}）
+\begin{itemize}
+  \item 测试用 \texttt{push\_front()} 和 \texttt{push\_back()} 分别在头部和尾部插入数据
+  \item 测试用 \texttt{pop\_front()} 和 \texttt{pop\_back()} 分别移除头部和尾部的数据
+  \item 藉助自增符号移动迭代器指针，以测试用 \texttt{insert()} 在非头尾处插入数据
+  \item 测试用 \texttt{erase()} 移除刚才插入的数据
+\end{itemize}
+\begin{itemize}
+  \item 藉助自减符号逆序输出 \texttt{lst4}，以测试本次作业内容之一自减操作之有效性
+  \item 测试用 \texttt{update()} 更新当前节点的数据
+  \item 测试用 \texttt{find()} 分别查找一个已知存在、一个已知不存在的数据
+\end{itemize}
+\begin{itemize}
+  \item 测试用 \texttt{clear()} 清空各节点
+\end{itemize}
+
+\section{测试的结果}
+
+\subsection{初始化测试}
+所有初始化测试结果正常。
+
+\subsection{增删改查测试}
+增删查操作均符合预期，未发现异常。
+
+\subsection{内存管理}
+我尚未使用 \texttt{valgrind} 测试内存泄漏的潜在性。烦请助教检验
+
+\end{document}
