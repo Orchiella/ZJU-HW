@@ -1,0 +1,58 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{geometry, CJKutf8}
+\geometry{margin=1.5cm, vmargin={0pt,1cm}}
+\setlength{\topmargin}{-1cm}
+\setlength{\paperheight}{29.7cm}
+\setlength{\textheight}{25.3cm}
+
+% useful packages.
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{fancyhdr}
+\usepackage{layout}
+\usepackage{listings}
+\usepackage{float, caption}
+
+\lstset{
+    basicstyle=\ttfamily, basewidth=0.5em
+}
+
+% some common command
+\newcommand{\dif}{\mathrm{d}}
+\newcommand{\avg}[1]{\left\langle #1 \right\rangle}
+\newcommand{\difFrac}[2]{\frac{\dif #1}{\dif #2}}
+\newcommand{\pdfFrac}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\OFL}{\mathrm{OFL}}
+\newcommand{\UFL}{\mathrm{UFL}}
+\newcommand{\fl}{\mathrm{fl}}
+\newcommand{\op}{\odot}
+\newcommand{\Eabs}{E_{\mathrm{abs}}}
+\newcommand{\Erel}{E_{\mathrm{rel}}}
+
+\begin{document}
+
+\pagestyle{fancy}
+\fancyhead{}
+\lhead{姓名: 邓东宁}
+\chead{数据结构与算法作业六}
+\rhead{学号: 3230101177}
+\cfoot{Nov.10th, 2024}
+
+\section{remove函数的设计思路}
+前半部分（查找与删除）代码基本和上次作业的一致，我进行了写法上的优化，但分类讨论情况与上次一致。后半部分（自平衡操作）从根节点遍历到删除节点原本的位置构造一条路径，接着沿着路径从下至上依次执行平衡操作。\\
+至于平衡操作，我构造了多个辅助函数，包括获取高度、更新高度、左旋转、右旋转。在平衡函数中，会根据实际情况，藉助左旋或右旋来完成平衡操作。
+
+\section{测试的结果}
+最终结果符合预期，未发现报错与超时的情况
+
+\section{遇到的困难}
+1.在最开始，我想推翻之前的BST remove代码，以尝试用递归的方法来删除节点，因为这样能做到在堆栈的顶层删除后，依次回溯执行平衡操作，遍历次数会更少。但当遇到测试程序$N=300000$的情形时，显然超时了，并提示了某个非0的exit code，经百度得知这个code对应栈溢出的情形，毕竟递归深度确实过大，于是我只能放弃了递归法。\\
+2.在构造上述提到的“路径”时，我不知道有什么合适的容器能表示下任意大小的集合（毕竟测试程序里的N还可以任意大），于是求助了AI，才知道原来有一个叫vector的动态数组类型，看来是我见识还不够，以后得多接触点才行。
+
+
+\end{document}
