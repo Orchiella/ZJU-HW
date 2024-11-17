@@ -416,7 +416,9 @@ protected:
             }
             delete targetNode;
         }
-        balance(t);
+        if (t != nullptr) {
+            balance(t);
+        }
     }
 
 
