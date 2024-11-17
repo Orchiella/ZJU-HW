@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file BST.h
  * @author M. A. Weiss (you@domain.com)
  * @brief 课本代码的注释和改进
@@ -9,7 +9,11 @@
  *
  */
 
+#include <windows.h>// SetConsoleOutputCP#endif
 #include <iostream>
+#include <stack>
+#include <queue>
+#include <iomanip>
 
 /// 临时性的异常类，用于表示树为空的异常
 class UnderflowException {
@@ -119,19 +123,8 @@ public:
         return root == nullptr;
     }
 
-    /**
-     * @brief 打印树的结构
-     *
-     * 将树的结构输出到指定的输出流，默认输出到标准输出流。
-     *
-     * @param out 输出流，默认为 std::cout
-     */
-    void printTree() const {
-        if (isEmpty()) {
-            std::cout << "Empty tree" << std::endl;
-        } else {
-            printTreeHelper(root, "", false);
-        }
+    void printTree() {
+        printTree(root, std::cout);
     }
 
     /**
@@ -295,25 +288,26 @@ protected:
     }
 
     /**
-     * @brief 递归打印树的结构
+     * @brief 递归打印树的结构（代码来自钉钉群同学的分享）
      *
      * @param t 当前节点指针
      * @param out 输出流
      */
-    void printTreeHelper(BinaryNode *node, const std::string &prefix, bool isLeft) const {
-        if (node == nullptr) {
+    void printTree(BinaryNode *t, std::ostream &out, std::string prePrint = "", int numofChild = 1,
+                   bool noBrother = 1) const {
+        if (isEmpty()) {
+            out << "empty" << std::endl;
             return;
         }
-
-        // 打印当前节点的值
-        std::cout << prefix;
-        std::cout << (isLeft ? "|------ " : "`------ ");
-        std::cout << node->element << std::endl;
-
-        // 递归打印左子树和右子树，更新前缀和方向
-        std::string newPrefix = prefix + (isLeft ? "|   " : "    ");
-        printTreeHelper(node->left, newPrefix, true);  // 打印左子树
-        printTreeHelper(node->right, newPrefix, false); // 打印右子树
+        if (t == this->root) { out << "root" << std::endl; }
+        if (t != nullptr) {
+            printTree(t->left, out, prePrint + (numofChild < 1 ? "    " : "|   "), 0, t->right == nullptr);
+            out << prePrint
+                << (numofChild < 1 ? "/---" : "|___")
+                << t->element
+                << std::endl;
+            printTree(t->right, out, prePrint + (numofChild < 1 ? "|   " : "    "), 1, t->left == nullptr);
+        } else if (!noBrother) { out << prePrint << (numofChild < 1 ? "/---" : "|___") << "#" << std::endl; }
     }
 
     /**
@@ -356,8 +350,8 @@ protected:
             /// 如果元素已存在，则不进行插入
             /// 这种情况不可遗漏，严格的规则中也可以抛出异常
         }
-        //插入后维持平衡
-        t = balance(t);
+        //插入后更新高度
+        updateHeight(t);
     }
 
     /**
@@ -377,8 +371,8 @@ protected:
         } else {
             // 如果元素已存在，则不进行插入
         }
-        //插入后维持平衡
-        t = balance(t);
+        //插入后更新高度
+        updateHeight(t);
     }
 
     /**
@@ -387,99 +381,54 @@ protected:
      * @param x 要移除的元素
      * @param t 当前节点指针
      */
-    void remove(const Comparable &x, BinaryNode *&_root) {
-        BinaryNode *targetNode = _root;
-        BinaryNode *parentNode = nullptr;
-
-        bool is_target_found = false;
-        //查找节点，并保持对其父节点的追踪
-        while (targetNode != nullptr) {
-            if (x < targetNode->element) {
-                parentNode = targetNode;
-                targetNode = targetNode->left;
-            } else if (x > targetNode->element) {
-                parentNode = targetNode;
-                targetNode = targetNode->right;
+    void remove(const Comparable &x, BinaryNode *&t) {
+        if (!t) return;
+        if (x < t->element)
+            remove(x, t->left);
+        else if (x > t->element)
+            remove(x, t->right);
+        else {
+            BinaryNode *targetNode = t;
+            //找到了待删除节点
+            if (t->right == nullptr) {
+                //若不存在右子树，则直接替换为左节点
+                t = t->left;
             } else {
-                is_target_found = true;
-                break;
-            }
-        }
-        if (!is_target_found) return;
-
-        //现在找到了待删除的目标节点，下面执行删除操作
-        BinaryNode *replaceNode;
-        if (targetNode->right == nullptr) {
-            //若不存在右子树，则直接替换为左节点
-            replaceNode = targetNode->left;
-        } else {
-            //若存在右子树，则替换为右子树最小节点
-            BinaryNode *parentNodeOfMin = targetNode;
-            replaceNode = targetNode->right;
-            while (replaceNode->left != nullptr) {
-                parentNodeOfMin = replaceNode;
-                replaceNode = replaceNode->left;
-            }
-            //如果要替换上来的节点不是待删节点的右节点，则要继承待删节点的右子树
-            if (parentNodeOfMin != targetNode) {
-                parentNodeOfMin->left = replaceNode->right;
-                replaceNode->right = targetNode->right;
-            }
-            //无论如何，都要继承左子树
-            replaceNode->left = targetNode->left;
-        }
-        //重新连接上级，当然如果父节点为空则说明已经为根节点，要更新根节点指针
-        if (parentNode == nullptr) {
-            _root = replaceNode;
-        } else if (parentNode->left == targetNode) {
-            parentNode->left = replaceNode;
-        } else {
-            parentNode->right = replaceNode;
-        }
-        delete targetNode;
-        //下面是自平衡部分
-        BinaryNode* currentNode = parentNode;
-        while (currentNode != nullptr) {
-            BinaryNode *oldCurrentNode = currentNode;
-            int oldHeight = getHeight(oldCurrentNode);
-            currentNode = findParent(oldCurrentNode->element);
-            BinaryNode *balancedCurrentNode = balance(oldCurrentNode);
-            if (currentNode != nullptr) {
-                if (currentNode->left == oldCurrentNode) {
-                    currentNode->left = balancedCurrentNode;
-                } else {
-                    currentNode->right = balancedCurrentNode;
+                //若存在右子树，则替换为右子树最小节点
+                BinaryNode *minNode = t->right;
+                std::stack<BinaryNode *> stk;
+                while (minNode->left != nullptr) {
+                    stk.push(minNode);
+                    minNode = minNode->left;
                 }
+                if (!stk.empty()) {
+                    //如果栈非空，则说明右子树有左子树，此时需要继承右子树
+                    stk.top()->left = minNode->right;
+                    minNode->right = targetNode->right;
+                    while (!stk.empty()) {
+                        balance(stk.top());
+                        stk.pop();
+                    }
+                }
+                //无论如何，都要继承左子树
+                minNode->left = targetNode->left;
+                t = minNode;
             }
-            if (oldHeight == getHeight(balancedCurrentNode)) {
-                break;
-            }
+            delete targetNode;
         }
+        balance(t);
     }
 
-    BinaryNode *findParent(const Comparable &x) {
-        BinaryNode *parentNode = nullptr;
-        BinaryNode *currentNode = root;
-        while (currentNode != nullptr) {
-            if (currentNode->element == x) {
-                break;
-            } else if (x < currentNode->element) {
-                parentNode = currentNode;
-                currentNode = currentNode->left;
-            } else {
-                parentNode = currentNode;
-                currentNode = currentNode->right;
-            }
-        }
-        return parentNode;
-    }
 
     /**
      * @param t 当前节点
      * @return 获取高度，判空时约定为0（依作业要求）
      */
     int getHeight(BinaryNode *t) const {
-        return t == nullptr ? 0 : t->height;
+        if (t == nullptr) return 0;
+        int leftHeight = (t->left == nullptr) ? 0 : t->left->height;
+        int rightHeight = (t->right == nullptr) ? 0 : t->right->height;
+        return std::max(leftHeight, rightHeight) + 1;
     }
 
     /**
@@ -487,74 +436,63 @@ protected:
      * @param t
      */
     void updateHeight(BinaryNode *t) {
-        if (t != nullptr) {
-            t->height = std::max(getHeight(t->left), getHeight(t->right)) + 1;
-        }
+        if (t == nullptr) return;
+        t->height = getHeight(t);
     }
 
     /**
      * @param t
      * @return 平衡值，大于1或小于-1分别对应左边偏重和右边偏重，需要对应采取平衡措施
      */
-    int getBalance(BinaryNode *t) const {
+    int getBalanceFactor(BinaryNode *t) const {
         return t == nullptr ? 0 : getHeight(t->left) - getHeight(t->right);
     }
 
     /**
      * @brief 核心部分：平衡树结构
-     * @param t 平衡后的新局部根节点
      * @return
      */
-    BinaryNode *balance(BinaryNode *t) {
-        if (t == nullptr) return t;
+    void balance(BinaryNode *&t) {
+        if (t == nullptr) return;
         updateHeight(t);
-        if (getBalance(t) > 1) {
+        if (getBalanceFactor(t) > 1) {
             //左边偏重
-            if (getBalance(t->left) < 0) {
+            if (getBalanceFactor(t->left) < 0) {
                 //左子树右边偏重，先拧到左边
-                t->left = rotateLeft(t->left);
+                rotateLeft(t->left);
             }
             //右旋
-            t = rotateRight(t);
-        } else if (getBalance(t) < -1) {
-            if (getBalance(t->right) > 0) {
-                t->right = rotateRight(t->right);
+            rotateRight(t);
+        } else if (getBalanceFactor(t) < -1) {
+            if (getBalanceFactor(t->right) > 0) {
+                rotateRight(t->right);
             }
-            t = rotateLeft(t);
+            rotateLeft(t);
         }
-        return t;
     }
 
     /**
      * @param t 要旋转的局部根节点
-     * @return 右旋后的新局部根节点
      */
-    BinaryNode *rotateRight(BinaryNode *&t) {
+    void rotateRight(BinaryNode *&t) {
         BinaryNode *newRoot = t->left;
         t->left = newRoot->right;
-        newRoot->right = t;
         updateHeight(t);
-        updateHeight(newRoot);
-        if (t == root) {
-            root = newRoot;
-        }
-        return newRoot;
+        newRoot->right = t;
+        t = newRoot;
+        updateHeight(t);
     }
 
     /**
      * @param t 要旋转的局部根节点
-     * @return 左旋后的新局部根节点
      */
-    BinaryNode *rotateLeft(BinaryNode *&t) {
+    void rotateLeft(BinaryNode *&t) {
         BinaryNode *newRoot = t->right;
         t->right = newRoot->left;
-        newRoot->left = t;
         updateHeight(t);
-        updateHeight(newRoot);
-        if (t == root) {
-            root = newRoot;
-        }
-        return newRoot;
+        newRoot->left = t;
+        t = newRoot;
+        updateHeight(t);
     }
 
 
@@ -571,4 +509,3 @@ protected:
         return new BinaryNode{t->element, clone(t->left), clone(t->right)};
     }
 };
-
