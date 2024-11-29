@@ -1,0 +1,100 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{geometry, CJKutf8}
+\geometry{margin=1.5cm, vmargin={0pt,1cm}}
+\setlength{\topmargin}{-1cm}
+\setlength{\paperheight}{29.7cm}
+\setlength{\textheight}{25.3cm}
+
+% useful packages.
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{fancyhdr}
+\usepackage{layout}
+\usepackage{listings}
+\usepackage{float, caption}
+
+\lstset{
+    basicstyle=\ttfamily, basewidth=0.5em
+}
+
+% some common command
+\newcommand{\dif}{\mathrm{d}}
+\newcommand{\avg}[1]{\left\langle #1 \right\rangle}
+\newcommand{\difFrac}[2]{\frac{\dif #1}{\dif #2}}
+\newcommand{\pdfFrac}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\OFL}{\mathrm{OFL}}
+\newcommand{\UFL}{\mathrm{UFL}}
+\newcommand{\fl}{\mathrm{fl}}
+\newcommand{\op}{\odot}
+\newcommand{\Eabs}{E_{\mathrm{abs}}}
+\newcommand{\Erel}{E_{\mathrm{rel}}}
+
+\begin{document}
+
+\pagestyle{fancy}
+\fancyhead{}
+\lhead{姓名: 邓东宁}
+\chead{数据结构与算法作业七}
+\rhead{学号: 3230101177}
+\cfoot{Nov.29th, 2024}
+
+\section{mySort()函数的设计思路}
+先把传入的容器用\textbf{make$\_$heap()}建堆，然后利用\textbf{pop$\_$heap()}一边 交换最大元和末尾元 一边 恢复堆结构 的性质，设计一个遍历，依次对由前n个节点构成的子堆$(n=size,size-1,...,2)$执行\textbf{pop$\_$heap()}函数，以逐步把节点元素从大到小排到末尾，最终得到一个升序容器
+
+\section{测试的流程}
+构造了\textbf{getRandomVec(),getOrderedVec(),getRepeatedVec()}函数分别生成要求的测试用例。\\
+接着定义了用例测试函数\textbf{testCase()}，分别执行并记录两种sort函数历时
+
+\section{测试的结果}
+\begin{table}[ht]
+\centering
+\begin{tabular}{|c|c|c|}  % 表示三列，使用竖线分隔
+\hline  % 水平线
+& mySort()& std::sort$\_$heap()\\  % 第一行内容
+\hline
+random& 0.585373s& 0.517296s\\  % 第二行内容
+\hline
+ordered& 0.424473s& 0.37941s\\  % 第三行内容
+\hline
+ reverse& 0.454048s&0.38589s\\
+\hline
+ repetitive& 0.420623s&0.379411s\\
+\hline
+\end{tabular}
+\caption{mySort() vs std::sort$\_$heap()}
+\end{table}
+实际上我进行了多次测试，以上结果为其中的随机一次，但也注意到，在每次测试的各个实例中，\textbf{前者效率总是稍逊于后者}
+
+\section{时间复杂度分析}
+先分析我定义的mySort()函数\\
+第一步是建堆：\\
+假设规模为$N$，对应堆层数$h=[log_{2}N](+1)$\\
+调节至最大堆的过程如下\\
+\begin{itemize}
+  \item 从最后一个叶节点的父节点开始往回遍历，即$i=n/2-1$ to $0$,依次使用\textbf{下沉操作}
+  \item 下沉操作即把当前节点与\textbf{左右子节点中最大者}调换，再对调换下去后的节点\textbf{递归}进行下沉操作
+  \item 对于第$r$层的节点，将至多调用$(h-r)$次下沉操作，而第$r$层至多有$2^r$个节点会调用下沉操作（实际上除了遍历起点的那一层，上面的层都全部会调用一次），得到该层至多调用$(h-r)*2^r$次
+  \item 对每一层调用下沉操作的次数进行求和，得到表达式$T_1=\sum_{r=1}^{h-1}(h-r)*2^r$，用高中时最爱的错位相减法化简表达式得到$T=2^{h+1}-2-2h$，代入$h$表达式，得到$T_1=O(N-logN)=O(N)$
+\end{itemize}
+下面分析第二步，即反复把子堆的最大元移到末尾来实现排序：
+\begin{itemize}
+\item 每一次把最大元换到末尾后，会对换上来的新节点执行\textbf{下沉操作}，这个过程逐层往下，一层一次，则下沉次数至多为堆高$h$（经过分析，下沉次数会随着子堆层数减少而减小，为子堆当前的层数，即很容易就小于$h$，但不影响最终估计，毕竟指数这个东西太强了）
+\item 这样操作要遍历$N$次，故下沉总次数$T_2=O(Nh)=O(NlogN)$
+\end{itemize}
+现在我们得到了总的时间复杂度$T=T_1+T_2=O(N)+O(NlogN)=O(NlogN)$\\
+\\
+
+\section{效率差异的原因}
+经过查阅资料，\textbf{std::sort$\_$heap()}函数的思路其实和我的mySort()是一致的，但为什么前者稍快呢？其实原理很简单，因为\textbf{std::sort$\_$heap()}需要传入一个\textbf{已经满足最大堆性质的集合}，在测试程序中因为只要求测试封装好的\textbf{std::sort$\_$heap()}函数，所以我在调用\textbf{std::make$\_$heap()}后才开始计时，这时候相当于赢在起跑线上了，\textbf{少比\textbf{mySort()}执行一个时间复杂度为$O(N)$的建堆工作}，但由于这个时间复杂度相对于主项$O(NlogN)$阶数更小，所以\textbf{std::sort$\_$heap()}虽然更快，但优势不明显。\\\\在我后续的实验中，我把\textbf{std::make$\_$heap()}加入计时区域后，发现两种算法运行得时间其实就平分秋色了，不再显现出孰优孰劣，与我的推断切合。
+
+
+\section{遇到的困难}
+经查阅资料，发现建堆和平衡堆的关键操作是\textbf{下沉操作}，学习理解这个过程也花了点时间。
+
+
+\end{document}
